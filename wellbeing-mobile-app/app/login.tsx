@@ -18,6 +18,7 @@ export default function Login() {
         // Signed in
         const user = userCredential.user;
         setUser(user);
+        router.push("/(tabs)/home");
       })
       .catch((error) => {
         setError(true);

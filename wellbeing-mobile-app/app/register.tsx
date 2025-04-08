@@ -25,6 +25,8 @@ export default function Login() {
         try {
           await addUser(user.uid, { name }); // Use user.uid as userId
           console.log("User added to Firestore successfully.");
+          // navigate to dashboard page
+          router.push("/(tabs)/home");
         } catch (firestoreError) {
           console.error("Error adding user to Firestore:", firestoreError);
           setErrorMessage("Error creating user account, please try again");
@@ -42,8 +44,6 @@ export default function Login() {
             );
           }
         }
-        // navigate to dashboard page
-        router.push("/(tabs)/home");
       })
       .catch((error) => {
         setError(true);

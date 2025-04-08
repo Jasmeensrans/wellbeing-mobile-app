@@ -2,17 +2,19 @@ import React from "react";
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
 import { Formik } from "formik";
 import * as yup from "yup";
 import { useRouter } from "expo-router";
+import { StyledTextField } from "./StyledTextField";
+import { Button } from "./StyledButton";
+import { ErrorText } from "./ErrorText";
 
 interface AuthenticationFormProps {
   isLogin: boolean;
-  onSubmit: any;
+  onSubmit: (email: string, password: string, firstName?: string) => void;
   isError: boolean;
   errorMessage: string;
 }
@@ -31,13 +33,11 @@ export default function AuthenticationForm({
       .email("Please enter a valid email")
       .required("Email is required"),
     password: yup.string().required("Password is required"),
-    firstName: isLogin
-      ? yup.string().notRequired()
-      : yup
-          .string()
-          .min(2, "First name must be at least 2 characters")
-          .matches(/^[A-Za-z]+$/, "First name can only contain letters")
-          .required("First name is required"),
+    firstName: isLogin ? yup.string().notRequired() : yup
+      .string()
+      .min(2, "First name must be at least 2 characters")
+      .matches(/^[A-Za-z]+$/, "First name can only contain letters")
+      .required("First name is required"),
   });
 
   const registerValidationSchema = yup.object().shape({
@@ -48,16 +48,8 @@ export default function AuthenticationForm({
     password: yup
       .string()
       .min(6, "Password must be at least 6 characters")
-      .test(
-        "hasNumbers",
-        "Password must contain at least 1 number",
-        (value) => !!value && /\d/.test(value)
-      )
-      .test(
-        "hasSymbols",
-        "Password must contain at least 1 special character",
-        (value) => !!value && /[!@#$%^&*(),.?":{}|<>]/.test(value)
-      )
+      .test("hasNumbers", "Password must contain at least 1 number", (value) => !!value && /\d/.test(value))
+      .test("hasSymbols", "Password must contain at least 1 special character", (value) => !!value && /[!@#$%^&*(),.?":{}|<>]/.test(value))
       .required("Password is required"),
     firstName: yup
       .string()
@@ -66,14 +58,12 @@ export default function AuthenticationForm({
       .required("First name is required"),
   });
 
-  const validationSchema = isLogin
-    ? loginValidationSchema
-    : registerValidationSchema;
+  const validationSchema = isLogin ? loginValidationSchema : registerValidationSchema;
 
   const handleSubmit = (values: {
     email: string;
     password: string;
-    firstName?: string; // Make firstName optional here
+    firstName?: string;
   }) => {
     if (isLogin) {
       onSubmit(values.email, values.password);
@@ -100,59 +90,44 @@ export default function AuthenticationForm({
           isValid,
         }) => (
           <>
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.input}
-                placeholder="Email"
-                keyboardType="email-address"
-                onChangeText={handleChange("email")}
-                onBlur={handleBlur("email")}
-                value={values.email}
-              />
-            </View>
+            <StyledTextField
+              placeholder="Email"
+              keyboardType="email-address"
+              onChangeText={handleChange("email")}
+              onBlur={handleBlur("email")}
+              value={values.email}
+            />
             {errors.email && touched.email && (
-              <Text style={styles.errorText}>{errors.email}</Text>
+              <ErrorText>{errors.email}</ErrorText>
             )}
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.input}
-                placeholder="Password"
-                secureTextEntry
-                onChangeText={handleChange("password")}
-                onBlur={handleBlur("password")}
-                value={values.password}
-              />
-            </View>
+            <StyledTextField
+              placeholder="Password"
+              secureTextEntry
+              onChangeText={handleChange("password")}
+              onBlur={handleBlur("password")}
+              value={values.password}
+            />
             {!isLogin && (
-              <View style={styles.inputContainer}>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Name"
-                  onChangeText={handleChange("firstName")}
-                  onBlur={handleBlur("firstName")}
-                  value={values.firstName}
-                />
-              </View>
+              <StyledTextField
+                placeholder="Name"
+                onChangeText={handleChange("firstName")}
+                onBlur={handleBlur("firstName")}
+                value={values.firstName}
+              />
             )}
             {errors.password && touched.password && (
-              <Text style={styles.errorText}>{errors.password}</Text>
+              <ErrorText>{errors.password}</ErrorText>
             )}
             {errors.firstName && touched.firstName && (
-              <Text style={styles.errorText}>{errors.firstName}</Text>
+              <ErrorText>{errors.firstName}</ErrorText>
             )}
-            {isError && <Text style={styles.errorText}>{errorMessage}</Text>}
+            {isError && <ErrorText>{errorMessage}</ErrorText>}
             {isLogin && (
               <TouchableOpacity onPress={() => router.push('/recoverpassword')}>
                 <Text style={styles.forgotPassword}>Forgot Password?</Text>
               </TouchableOpacity>
             )}
-            <TouchableOpacity
-              style={styles.button}
-              onPress={handleSubmit}
-              disabled={!isValid}
-            >
-              <Text style={styles.buttonText}>Submit</Text>
-            </TouchableOpacity>
+            <Button title="Submit" onPress={handleSubmit} disabled={!isValid} />
             <TouchableOpacity
               onPress={() => router.push(isLogin ? "/register" : "/login")}
             >
@@ -189,50 +164,9 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "black",
   },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    width: "100%",
-    height: 50,
-    backgroundColor: "#f1f1f1",
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    marginBottom: 20,
-  },
-  icon: {
-    marginRight: 10,
-  },
-  input: {
-    flex: 1,
-    height: "100%",
-  },
   forgotPassword: {
     alignSelf: "flex-end",
     marginBottom: 20,
     color: "#000",
-  },
-  button: {
-    width: "100%",
-    height: 50,
-    backgroundColor: "#1E90FF",
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 18,
-  },
-  signUp: {
-    color: "#000",
-  },
-  signUpLink: {
-    color: "#1E90FF",
-  },
-  errorText: {
-    color: "red",
-    alignSelf: "flex-start",
-    marginBottom: 10,
   },
 });
